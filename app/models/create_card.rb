@@ -14,19 +14,12 @@ class CreateCard
   attr_accessor :name, :number, :cvv, :experiation_month, :experiation_year,
                 :customer_id
 
+  attr_reader :card
+
   def save
     if valid?
-      @card = Card.new
-
-      @card.name = name
-      @card.bin = bin
-      @card.last_four = last_four
-      @card.brand = brand
-      @card.status = "active"
-      @card.expiration_month = experiation_month
-      @card.expiration_year = experiation_year
-
-      @card.save
+      save_not_sensitive_data
+      save_sensitive_data
     end
   end
 
@@ -66,5 +59,50 @@ class CreateCard
 
   def bin
     number.to_s[0, 6]
+  end
+
+  def save_not_sensitive_data
+    @card = Card.new
+
+    @card.name = name
+    @card.bin = bin
+    @card.customer_id = customer_id
+    @card.last_four = last_four
+    @card.brand = brand
+    @card.token = token
+    @card.status = "active"
+    @card.expiration_month = experiation_month
+    @card.expiration_year = experiation_year
+
+    @card.save
+  end
+
+  def save_sensitive_data
+    redis_data = RedisClient.get(customer_id)
+
+    if redis_data.nil?
+      data = {}
+    else
+      data = JSON.parse redis_data
+    end
+
+    sensitive_data = {
+      number: number,
+      cvv: cvv,
+      expiration_month: experiation_month,
+      expiration_year: experiation_year
+    }
+
+    sensitive_hash = Hash[token, sensitive_data]
+
+    data.merge!(sensitive_hash)
+
+    RedisClient.set(customer_id, data)
+    RedisClient.expire(customer_id, 600)
+  end
+
+  def token
+    Hasher.encode(last_four.to_i, bin.to_i, experiation_month.to_i,
+                  experiation_year.to_i)
   end
 end

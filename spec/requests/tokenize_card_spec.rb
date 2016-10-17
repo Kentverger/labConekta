@@ -16,6 +16,7 @@ RSpec.describe "Tokenize Card", :type => :request do
 
       expect(response).to have_http_status(:success)
       expect(json_response["name"]).to eq("Luis Carlos")
+      expect(RedisClient.get(json_response["customer_id"]).nil?).to eq(false)
     end
 
     it "Fails if name is not set" do

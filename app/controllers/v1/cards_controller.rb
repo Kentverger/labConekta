@@ -1,12 +1,12 @@
 class V1::CardsController < ApplicationController
   def create
-    card = CreateCard.new card_params
+    createCard = CreateCard.new card_params
 
-    if card.save
-      render json: card, status: 200
+    if createCard.save
+      render json: createCard.card, status: 200
     else
       render json: {
-        errors: card.errors.full_messages
+        errors: createCard.errors.full_messages
       }, status: 500
     end
   end
