@@ -9,6 +9,7 @@ group :development, :test do
   gem 'rspec-rails', '~> 3.5.2'
   gem 'dotenv-rails', '~> 2.1.1'
   gem 'shoulda-matchers', '~> 3.1'
+  gem 'factory_girl_rails', '~> 4.7.0'
 end
 
 group :development do
